@@ -7,31 +7,20 @@ WebWorker.js description.
 # Document
 
 - https://github.com/uupaa/WebWorker.js/wiki/WebWorker
-- https://github.com/uupaa/WebModule, [slide](http://uupaa.github.io/Slide/slide/WebModule/index.html)
-- https://github.com/uupaa/Help.js, [slide](http://uupaa.github.io/Slide/slide/Help.js/index.html)
+- https://github.com/uupaa/WebModule ([Slide](http://uupaa.github.io/Slide/slide/WebModule/index.html))
+- https://github.com/uupaa/Help.js ([Slide](http://uupaa.github.io/Slide/slide/Help.js/index.html))
 
 # How to use
 
 ```js
 <script src="lib/WebWorker.js">
 <script>
-// for Browser
-console.log( WebWorker() );
+
+
+var worker = new WebWorker({ source: "./worker.js" }, function(err, event) {
+                    console.log(event.data.result);
+                }).post({});
 </script>
-```
-
-```js
-// for WebWorkers
-importScripts("lib/WebWorker.js");
-
-console.log( WebWorker() );
-```
-
-```js
-// for Node.js
-var WebWorker = require("lib/WebWorker.js");
-
-console.log( WebWorker() );
 ```
 
 # for Developers
