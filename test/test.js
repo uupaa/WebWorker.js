@@ -1,9 +1,26 @@
-new Test().add([
-        testWebWorker,
-        testWebWorkerError,
-        testWebWorkerInline,
-        testWebWorkerCloseAfterCanNotReuse,
-    ]).run(function(err, test) {
+(function(global) {
+
+var _inNode = "process" in global;
+var _inWorker = "WorkerLocation" in global;
+var _inBrowser = "self" in global;
+
+var test = new Test().add([
+    ]);
+
+    if (_inNode) {
+        ;
+    } else if (_inBrowser) {
+        test.add([
+            testWebWorker,
+            testWebWorkerError,
+            testWebWorkerInline,
+            testWebWorkerCloseAfterCanNotReuse,
+        ]);
+    } else if (_inWorker) {
+        ;
+    }
+
+    test.run(function(err, test) {
         if (1) {
 //          err || test.worker(function(err, test) {
                 if (!err && typeof WebWorker_ !== "undefined") {
@@ -205,3 +222,4 @@ function testWebWorkerCloseAfterCanNotReuse(next) {
 
 }
 
+})((this || 0).self || global);
