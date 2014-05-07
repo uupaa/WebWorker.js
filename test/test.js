@@ -1,47 +1,36 @@
-(function(global) {
+var ModuleTestWebWorker = (function(global) {
 
-var _inNode = "process" in global;
-var _inWorker = "WorkerLocation" in global;
-var _inBrowser = "self" in global;
+var _inNode    = "process"        in global;
+var _inWorker  = "WorkerLocation" in global;
+var _inBrowser = "document"       in global;
 
-var test = new Test().add([
-    ]);
-
-    if (_inNode) {
-        ;
-    } else if (_inBrowser) {
-        test.add([
-            testWebWorker,
-            testWebWorkerError,
-            testWebWorkerInline,
-            testWebWorkerCloseAfterCanNotReuse,
-        ]);
-    } else if (_inWorker) {
-        ;
-    }
-
-    test.run(function(err, test) {
-        if (1) {
-//          err || test.worker(function(err, test) {
-                if (!err && typeof WebWorker_ !== "undefined") {
-                    var name = Test.swap(WebWorker, WebWorker_);
-
-                    new Test(test).run(function(err, test) {
-                        Test.undo(name);
-                    });
-                }
-//          });
-        }
+var test = new Test("WebWorker", {
+        disable:    false,
+        browser:    true,
+        worker:     false,
+        node:       true,
+        button:     true,
+        both:       true,
     });
+
+if (_inBrowser) {
+    test.add([
+        testWebWorker,
+        testWebWorkerError,
+        testWebWorkerInline,
+        testWebWorkerCloseAfterCanNotReuse,
+    ]);
+}
+
+return test.run().clone();
+
 
 function testWebWorker(next) {
 
     var task = new Task(4, function(err) {
             if (!err) {
-                console.log("testWebWorker ok");
                 next && next.pass();
             } else {
-                console.error("testWebWorker ng");
                 next && next.miss();
             }
         });
@@ -102,10 +91,8 @@ function testWebWorkerError(next) {
 
     var task = new Task(1, function(err) {
             if (!err) {
-                console.log("testWebWorkerError ok");
                 next && next.pass();
             } else {
-                console.error("testWebWorkerError ng");
                 next && next.miss();
             }
         });
@@ -127,10 +114,8 @@ function testWebWorkerInline(next) {
 
     var task = new Task(1, function(err) {
             if (!err) {
-                console.log("testWebWorkerInline ok");
                 next && next.pass();
             } else {
-                console.error("testWebWorkerInline ng");
                 next && next.miss();
             }
         });
@@ -193,10 +178,8 @@ function testWebWorkerCloseAfterCanNotReuse(next) {
 
     var task = new Task(2, function(err) {
             if (!err) {
-                console.log("testWebWorkerCloseAfterCanNotReuse ok");
                 next && next.pass();
             } else {
-                console.error("testWebWorkerCloseAfterCanNotReuse ng");
                 next && next.miss();
             }
         });
@@ -223,3 +206,4 @@ function testWebWorkerCloseAfterCanNotReuse(next) {
 }
 
 })((this || 0).self || global);
+

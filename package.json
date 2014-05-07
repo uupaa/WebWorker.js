@@ -1,6 +1,6 @@
 {
   "name":           "uupaa.webworker.js",
-  "version":        "0.8.7",
+  "version":        "0.8.8",
   "description":    "WebWorkers wrapper.",
   "url":            "https://github.com/uupaa/WebWorker.js",
   "keywords":       ["WebWorkers", "Worker", "Thread", "util", "uupaa", "WebModule"],
@@ -25,7 +25,7 @@
     "output":       "release/WebWorker.min.js",
     "target":       ["Browser"],
     "module": {
-      "develop":    [],
+      "develop":    ["uupaa.valid.js"],
       "release":    []
     }
   },
