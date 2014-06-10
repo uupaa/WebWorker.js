@@ -1,38 +1,15 @@
-var _workerOrigin = "";
+importScripts("../lib/WorkerResponder.js");
 
+new WorkerResponder(function(event, that) {
+    var result = event.data.param[0] + event.data.param[1];
+
+    that.response({ "result": result });
+});
+
+/* or
 onmessage = function(event) {
-    // event.data has {
-    //      WORKER_ID:  Integer,
-    //      REQUEST_ID: Integer,
-    //      INIT:       Boolean,
-    //      ORIGIN:     String,
-    //      SCRIPT:     ScriptURLStringArray
-    // }
-
-    var request = event.data;
-    var workerID = request["WORKER_ID"];
-    var requestID = request["REQUEST_ID"];
-
-    if (request["INIT"]) {
-        _workerOrigin = request["ORIGIN"] || "";
-        importScripts.apply(self, request["SCRIPT"]);
-    }
-
-    _do(request);
-
-    function _do(request) {
-        var result = request.param[0]
-                   + request.param[1];
-        var sleep = request.sleep || 0;
-
-        setTimeout(function() {
-            self.postMessage({
-                "WORKER_ID":    workerID,
-                "REQUEST_ID":   requestID,
-                "keys":         "result",
-                "result":       result
-            });
-        }, sleep);
-    }
+    event.data.result = "OK";
+    self.postMessage(event.data);
 };
+ */
 
