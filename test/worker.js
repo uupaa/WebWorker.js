@@ -23,13 +23,16 @@ onmessage = function(event) {
     function _do(request) {
         var result = request.param[0]
                    + request.param[1];
+        var sleep = request.sleep || 0;
 
-        self.postMessage({
-            "WORKER_ID":    workerID,
-            "REQUEST_ID":   requestID,
-            "keys":         "result",
-            "result":       result
-        });
+        setTimeout(function() {
+            self.postMessage({
+                "WORKER_ID":    workerID,
+                "REQUEST_ID":   requestID,
+                "keys":         "result",
+                "result":       result
+            });
+        }, sleep);
     }
 };
 

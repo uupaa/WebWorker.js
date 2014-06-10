@@ -12,52 +12,52 @@
       },
       "complexity": {
         "aggregate": {
-          "line": 5,
+          "line": 1,
           "complexity": {
             "sloc": {
-              "physical": 258,
-              "logical": 136
+              "physical": 233,
+              "logical": 127
             },
-            "cyclomatic": 51,
+            "cyclomatic": 41,
             "halstead": {
               "operators": {
-                "distinct": 28,
-                "total": 399,
+                "distinct": 26,
+                "total": 377,
                 "identifiers": [
                   "__stripped__"
                 ]
               },
               "operands": {
-                "distinct": 165,
-                "total": 481,
+                "distinct": 139,
+                "total": 506,
                 "identifiers": [
                   "__stripped__"
                 ]
               },
-              "length": 880,
-              "vocabulary": 193,
-              "difficulty": 40.81212121212121,
-              "volume": 6681.362192795911,
-              "effort": 272680.5636744707,
-              "bugs": 2.2271207309319703,
-              "time": 15148.920204137261
+              "length": 883,
+              "vocabulary": 165,
+              "difficulty": 47.32374100719424,
+              "volume": 6504.462515179055,
+              "effort": 307815.49945933686,
+              "bugs": 2.1681541717263517,
+              "time": 17100.86108107427
             },
-            "params": 17
+            "params": 18
           }
         },
         "module": "lib/WebWorker.js",
-        "maintainability": 60.28420869875954
+        "maintainability": 59.666991420156215
       }
     }
   ],
   "summary": {
     "total": {
-      "sloc": 258,
-      "maintainability": 60.28420869875954
+      "sloc": 233,
+      "maintainability": 59.666991420156215
     },
     "average": {
-      "sloc": 258,
-      "maintainability": "60.28"
+      "sloc": 233,
+      "maintainability": "59.67"
     }
   }
 }

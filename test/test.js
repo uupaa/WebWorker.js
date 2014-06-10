@@ -19,19 +19,20 @@ if (_inBrowser) {
         testWebWorkerError,
         testWebWorkerInline,
         testWebWorkerCloseAfterCanNotReuse,
+        testWebWorkerHookCallback,
     ]);
 }
 
 return test.run().clone();
 
 
-function testWebWorker(next) {
+function testWebWorker(test, pass, miss) {
 
     var task = new Task(4, function(err) {
             if (!err) {
-                next && next.pass();
+                test.done(pass());
             } else {
-                next && next.miss();
+                test.done(miss());
             }
         });
 
@@ -60,7 +61,7 @@ function testWebWorker(next) {
             task.miss();
         });
 
-    var worker2 = new WebWorker({ script: script, source: "./worker.js", id: 1000, verbose: true }, function(err, event) {
+    var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true }, function(err, event) {
             if (err) {
                 ;
             } else {
@@ -87,13 +88,13 @@ function testWebWorker(next) {
 }
 
 
-function testWebWorkerError(next) {
+function testWebWorkerError(test, pass, miss) {
 
     var task = new Task(1, function(err) {
             if (!err) {
-                next && next.pass();
+                test.done(pass());
             } else {
-                next && next.miss();
+                test.done(miss());
             }
         });
 
@@ -110,13 +111,13 @@ function testWebWorkerError(next) {
 }
 
 
-function testWebWorkerInline(next) {
+function testWebWorkerInline(test, pass, miss) {
 
     var task = new Task(1, function(err) {
             if (!err) {
-                next && next.pass();
+                test.done(pass());
             } else {
-                next && next.miss();
+                test.done(miss());
             }
         });
 
@@ -174,13 +175,13 @@ function _multiline(fn) { // @arg Function:
 }
 
 
-function testWebWorkerCloseAfterCanNotReuse(next) {
+function testWebWorkerCloseAfterCanNotReuse(test, pass, miss) {
 
     var task = new Task(2, function(err) {
             if (!err) {
-                next && next.pass();
+                test.done(pass());
             } else {
-                next && next.miss();
+                test.done(miss());
             }
         });
 
@@ -203,6 +204,71 @@ function testWebWorkerCloseAfterCanNotReuse(next) {
 
     worker1.post({ param: ["hello", "worker"] }); // workerID=1,requestID=1
 
+}
+
+function testWebWorkerHookCallback(test, pass, miss) {
+
+    var task = new Task(3, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+        });
+
+    var baseDir = WebWorker.baseDir();
+    var script = [
+                baseDir + "../node_modules/uupaa.valid.js/lib/Valid.js",
+                baseDir + "../node_modules/uupaa.task.js/lib/Task.js"
+            ];
+
+    var worker1 = new WebWorker({ script: script, source: "./worker.js", verbose: true });
+    var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true });
+
+    // workerID=1,requestID=1
+    worker1.post({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event) {
+            if (err) {
+                ;
+            } else {
+                if (event.data.REQUEST_ID === 1) {
+                    if (event.data.result === "helloworker") {
+                        task.pass();
+                        return;
+                    }
+                }
+            }
+            task.miss();
+    });
+    // workerID=1,requestID=2
+    worker1.post({ param: ["foo", "bar"], sleep: 1000 }, null, function(err, event) {
+            if (err) {
+                ;
+            } else {
+                if (event.data.REQUEST_ID === 2) {
+                    if (event.data.result === "foobar") {
+                        task.pass();
+                        return;
+                    }
+                }
+            }
+            task.miss();
+    });
+
+
+    // workerID=2,requestID=1000
+    worker2.post({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event) {
+            if (err) {
+                ;
+            } else {
+                if (event.data.REQUEST_ID === 1000) {
+                    if (event.data.result === "helloworker") {
+                        task.pass();
+                        return;
+                    }
+                }
+            }
+            task.miss();
+    });
 }
 
 })((this || 0).self || global);
