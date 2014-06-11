@@ -1,6 +1,6 @@
 {
   "name":           "uupaa.webworker.js",
-  "version":        "0.10.2",
+  "version":        "0.10.3",
   "description":    "WebWorkers wrapper.",
   "url":            "https://github.com/uupaa/WebWorker.js",
   "keywords":       ["WebWorkers", "Worker", "Thread", "util", "uupaa", "WebModule", "Unstable"],
