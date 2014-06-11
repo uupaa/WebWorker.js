@@ -19,9 +19,9 @@ WebWorker wrapper.
 <script src="lib/WebWorker.js">
 <script>
 
+new WebWorker({ source: "./worker.js" }, function(err, event) {
+    console.log(event.data.result);
+}).request({});
 
-var worker = new WebWorker({ source: "./worker.js" }, function(err, event) {
-                    console.log(event.data.result);
-                }).post({});
 </script>
 ```
