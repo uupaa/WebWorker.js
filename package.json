@@ -1,6 +1,6 @@
 {
   "name":           "uupaa.webworker.js",
-  "version":        "0.10.7",
+  "version":        "0.10.8",
   "description":    "WebWorkers wrapper.",
   "url":            "https://github.com/uupaa/WebWorker.js",
   "keywords":       ["WebWorkers", "Worker", "Thread", "util", "uupaa", "WebModule", "Unstable"],
@@ -18,7 +18,7 @@
     "test-debug":   "NODE_ENV=production NODE_PATH=lib node --debug-brk --harmony test/index.node.js",
     "test-node":    "NODE_ENV=production NODE_PATH=lib node --harmony test/index.node.js",
     "test-browser": "open http://localhost:8585/test/index.html",
-    "test-sim":     "node node_modules/uupaa.iphonesimulator.js --port 8585 -xcache --open test/index.html",
+    "test-sim":     "node node_modules/uupaa.iphonesimulator.js --port 8585 --xcache --open test/index.html",
     "server":       "http-server -c-1 -p 8585 &",
     "server-stop":  "",
     "server-kill":  "killall -- node /usr/local/bin/http-server -p 8585 ; exit 0",

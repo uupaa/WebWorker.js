@@ -15,49 +15,49 @@
           "line": 1,
           "complexity": {
             "sloc": {
-              "physical": 231,
-              "logical": 125
+              "physical": 261,
+              "logical": 140
             },
-            "cyclomatic": 41,
+            "cyclomatic": 44,
             "halstead": {
               "operators": {
                 "distinct": 25,
-                "total": 373,
+                "total": 407,
                 "identifiers": [
                   "__stripped__"
                 ]
               },
               "operands": {
-                "distinct": 135,
-                "total": 502,
+                "distinct": 150,
+                "total": 553,
                 "identifiers": [
                   "__stripped__"
                 ]
               },
-              "length": 875,
-              "vocabulary": 160,
-              "difficulty": 46.48148148148148,
-              "volume": 6406.6870830264415,
-              "effort": 297792.30700734013,
-              "bugs": 2.1355623610088137,
-              "time": 16544.01705596334
+              "length": 960,
+              "vocabulary": 175,
+              "difficulty": 46.08333333333333,
+              "volume": 7153.162667359036,
+              "effort": 329641.57958746224,
+              "bugs": 2.3843875557863456,
+              "time": 18313.421088192346
             },
-            "params": 19
+            "params": 24
           }
         },
         "module": "lib/WebWorker.js",
-        "maintainability": 61.034699244614686
+        "maintainability": 61.48879013552876
       }
     }
   ],
   "summary": {
     "total": {
-      "sloc": 231,
-      "maintainability": 61.034699244614686
+      "sloc": 261,
+      "maintainability": 61.48879013552876
     },
     "average": {
-      "sloc": 231,
-      "maintainability": "61.03"
+      "sloc": 261,
+      "maintainability": "61.49"
     }
   }
 }
