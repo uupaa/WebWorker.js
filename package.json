@@ -25,10 +25,10 @@
     "lint":         "node node_modules/uupaa.plato.js; open lint/plato/index.html"
   },
   "x-build": {
-    "files":        ["lib/WebWorker.js"],
+    "source":        ["lib/WebWorker.js"],
     "output":       "release/WebWorker.min.js",
-    "target":       ["Browser"],
-    "labels":       ["@dev", "@xbrowser", "@verbose"],
+    "target":       ["browser"],
+    "label":        ["@dev", "@xbrowser", "@verbose"],
     "module": {
       "develop":    ["uupaa.valid.js"],
       "release":    []
@@ -47,7 +47,8 @@
     "uupaa.test.js":    "",
     "uupaa.watch.js":   "",
     "uupaa.plato.js":   "",
-    "uupaa.minify.js":  ""
+    "uupaa.minify.js":  "",
+    "uupaa.message.js": ""
   },
   "lib":            "./lib/",
   "main":           "./index.js",

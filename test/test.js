@@ -21,6 +21,7 @@ if (_inBrowser) {
         testWebWorkerCloseAfterCanReuse,
         testWebWorkerHookCallback,
         testWebWorkerCommand,
+        testMessageOverWorkerThread,
     ]);
 }
 
@@ -271,14 +272,19 @@ function defaultCallback(event, that) { // 宛先が不明な command はこの�
 
 
 
+function testMessageOverWorkerThread(test, pass, miss) {
 
+    var worker = new WebWorker({ source: "mow.js" });
+    var msg = new Message({ worker: worker });
 
-
-
-
-
-
-
+    msg.post({ message: ["hello", "worker"] }, function(err, buffer) {
+        if (buffer.worker === "hello!worker") {
+            test.done(pass());
+        } else {
+            test.done(miss());
+        }
+    });
+}
 
 
 })((this || 0).self || global);
