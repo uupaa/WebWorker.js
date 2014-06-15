@@ -75,5 +75,49 @@
       "sloc": 271,
       "maintainability": "61.31"
     }
+  },
+  {
+    "date": "Sun, 15 Jun 2014 02:18:30 GMT",
+    "total": {
+      "sloc": 290,
+      "maintainability": 62.00510196215003
+    },
+    "average": {
+      "sloc": 290,
+      "maintainability": "62.01"
+    }
+  },
+  {
+    "date": "Sun, 15 Jun 2014 02:20:27 GMT",
+    "total": {
+      "sloc": 290,
+      "maintainability": 62.00510196215003
+    },
+    "average": {
+      "sloc": 290,
+      "maintainability": "62.01"
+    }
+  },
+  {
+    "date": "Sun, 15 Jun 2014 02:22:18 GMT",
+    "total": {
+      "sloc": 290,
+      "maintainability": 62.00510196215003
+    },
+    "average": {
+      "sloc": 290,
+      "maintainability": "62.01"
+    }
+  },
+  {
+    "date": "Sun, 15 Jun 2014 06:50:58 GMT",
+    "total": {
+      "sloc": 293,
+      "maintainability": 61.86817343576673
+    },
+    "average": {
+      "sloc": 293,
+      "maintainability": "61.87"
+    }
   }
 ]

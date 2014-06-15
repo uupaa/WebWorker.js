@@ -16,7 +16,8 @@ var test = new Test("WebWorker", {
 if (_inBrowser) {
     test.add([
         testWebWorker,
-        testWebWorkerError,
+        testWebWorkerThrowInner,
+        testWebWorkerThrowOuter,
         testWebWorkerInline,
         testWebWorkerCloseAfterCanReuse,
         testWebWorkerHookCallback,
@@ -43,12 +44,12 @@ function testWebWorker(test, pass, miss) {
                 "../node_modules/uupaa.task.js/lib/Task.js"
             ];
 
-    var worker1 = new WebWorker({ script: script, source: "./worker.js", verbose: true }, function(err, event) {
+    var worker1 = new WebWorker({ script: script, source: "./worker.js", verbose: true }, function(err, event, body) {
             if (err) {
                 ;
             } else {
-                if (event.data.result === "helloworker" ||
-                    event.data.result === "foobar") {
+                if (body.result === "helloworker" ||
+                    body.result === "foobar") {
 
                     task.pass();
                     return;
@@ -57,12 +58,12 @@ function testWebWorker(test, pass, miss) {
             task.miss();
         });
 
-    var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true }, function(err, event) {
+    var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true }, function(err, event, body) {
             if (err) {
                 ;
             } else {
-                if (event.data.result === "helloworker" ||
-                    event.data.result === "foobar") {
+                if (body.result === "helloworker" ||
+                    body.result === "foobar") {
 
                     task.pass();
                     return;
@@ -79,7 +80,7 @@ function testWebWorker(test, pass, miss) {
 }
 
 
-function testWebWorkerError(test, pass, miss) {
+function testWebWorkerThrowInner(test, pass, miss) {
 
     var task = new Task(1, function(err) {
             if (!err) {
@@ -89,7 +90,29 @@ function testWebWorkerError(test, pass, miss) {
             }
         });
 
-    var worker1 = new WebWorker({ source: "./error.js", verbose: true }, function(err, event) {
+    var worker1 = new WebWorker({ source: "./worker.throw.inner.js", verbose: true }, function(err, event) {
+            if (err) {
+                task.pass();
+            } else {
+                task.miss();
+            }
+        });
+
+
+    worker1.request({}, null, null, "inbox");
+}
+
+function testWebWorkerThrowOuter(test, pass, miss) {
+
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+        });
+
+    var worker1 = new WebWorker({ source: "./worker.throw.outer.js", verbose: true }, function(err, event) {
             if (err) {
                 task.pass();
             } else {
@@ -121,8 +144,10 @@ onmessage = function(event) {
 
 */});
 
-    var worker1 = new WebWorker({ inline: true, source: inlineWorkerSource, verbose: true }, function(err, event) {
+    var worker1 = new WebWorker({ inline: true, source: inlineWorkerSource, verbose: true },
+                                function(err, event, body) {
             if (!err) {
+              //if (body.result === "OK")
                 if (event.data.result === "OK") {
                     task.pass();
                     return;
@@ -192,40 +217,40 @@ function testWebWorkerHookCallback(test, pass, miss) {
     var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true });
 
     // workerID=1,requestID=1
-    worker1.request({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event) {
+    worker1.request({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event, body) {
             if (err) {
                 ;
             } else {
-                    if (event.data.result === "helloworker") {
-                        task.pass();
-                        return;
-                    }
+                if (body.result === "helloworker") {
+                    task.pass();
+                    return;
+                }
             }
             task.miss();
     });
     // workerID=1,requestID=2
-    worker1.request({ param: ["foo", "bar"], sleep: 1000 }, null, function(err, event) {
+    worker1.request({ param: ["foo", "bar"], sleep: 1000 }, null, function(err, event, body) {
             if (err) {
                 ;
             } else {
-                    if (event.data.result === "foobar") {
-                        task.pass();
-                        return;
-                    }
+                if (body.result === "foobar") {
+                    task.pass();
+                    return;
+                }
             }
             task.miss();
     });
 
 
     // workerID=2,requestID=1000
-    worker2.request({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event) {
+    worker2.request({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event, body) {
             if (err) {
                 ;
             } else {
-                    if (event.data.result === "helloworker") {
-                        task.pass();
-                        return;
-                    }
+                if (body.result === "helloworker") {
+                    task.pass();
+                    return;
+                }
             }
             task.miss();
     });
@@ -237,19 +262,19 @@ function testWebWorkerHookCallback(test, pass, miss) {
 
 function testWebWorkerCommand(test, pass, miss) {
 
-    var worker = new WebWorker({ source: "./workercommand.js", verbose: true });
-    var data = { message: ["hello", "worker"], command: "concat" };
+    var worker = new WebWorker({ source: "./worker.command.routing.js", verbose: true });
+    var data = { message: ["hello", "worker"] };
 
-    worker.request(data, null, function(err, event) {
-        if (err || event.data.result !== "hello!worker") {
+    worker.request(data, null, function(err, event, body) {
+        if (err || body.result !== "hello!worker") {
             test.done(miss());
         } else {
             test.done(pass());
         }
-    });
+    }, "concat");
 }
 /*
-// Worker
+// worker.command.routing.js
 
 importScripts("../lib/WorkerResponder.js");
 
@@ -257,14 +282,14 @@ var worker = new WorkerResponder(defaultCallback);
 
 worker.on("concat", handleConcatCommand); // command = "concat" に反応するコールバックを登録します
 
-function handleConcatCommand(event, that) {
-    var result = event.data.message.join("!"); // "hello!worker"
+function handleConcatCommand(event, body) {
+    var result = body.message.join("!"); // "hello!worker"
 
-    that.response({ "result": result }); // event.data.result = "hello!worker"
+    worker.response({ "result": result }); // body.result = "hello!worker"
 }
 
-function defaultCallback(event, that) { // 宛先が不明な command はこのコールバックに渡されます
-    that.response({ "result": "unknown command" });
+function defaultCallback(event, body) { // 宛先が不明な command はこのコールバックに渡されます
+    worker.response({ "result": "unknown command" });
 }
 
  */
@@ -274,7 +299,7 @@ function defaultCallback(event, that) { // 宛先が不明な command はこの�
 
 function testMessageOverWorkerThread(test, pass, miss) {
 
-    var worker = new WebWorker({ source: "mow.js" });
+    var worker = new WebWorker({ source: "message.over.worker.js", verbose: true });
     var msg = new Message({ worker: worker });
 
     msg.post({ message: ["hello", "worker"] }, function(err, buffer) {
