@@ -15,7 +15,8 @@ var test = new Test("WebWorker", {
 
 if (_inBrowser) {
     test.add([
-        testWebWorker,
+        testWebWorker1,
+        testWebWorker2,
         testWebWorkerThrowInner,
         testWebWorkerThrowOuter,
         testWebWorkerInline,
@@ -29,7 +30,33 @@ if (_inBrowser) {
 return test.run().clone();
 
 
-function testWebWorker(test, pass, miss) {
+function testWebWorker1(test, pass, miss) {
+
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+        });
+
+    var worker1 = new WebWorker({ source: "./worker.js", verbose: true }, function(err, event, body) {
+            if (err) {
+                ;
+            } else {
+                if (body.result === "helloworker") {
+
+                    task.pass();
+                    return;
+                }
+            }
+            task.miss();
+        });
+
+    worker1.request({ param: ["hello", "worker"] }); // workerID=1,requestID=1
+}
+
+function testWebWorker2(test, pass, miss) {
 
     var task = new Task(4, function(err) {
             if (!err) {
