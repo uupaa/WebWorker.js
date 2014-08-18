@@ -40,7 +40,11 @@ function testWebWorker1(test, pass, miss) {
             }
         });
 
-    var worker1 = new WebWorker({ source: "./worker.js", verbose: true }, function(err, event, body) {
+    var origin = location.href.split("/").slice(0, -1).join("/") + "/";
+
+    var worker1 = new WebWorker({ origin: origin,
+                                  source: "./worker.js",
+                                  verbose: true }, function(err, event, body) {
             if (err) {
                 ;
             } else {
@@ -171,7 +175,9 @@ onmessage = function(event) {
 
 */});
 
-    var worker1 = new WebWorker({ inline: true, source: inlineWorkerSource, verbose: true },
+    var worker1 = new WebWorker({ inline: true,
+                                  source: inlineWorkerSource,
+                                  verbose: true },
                                 function(err, event, body) {
             if (!err) {
               //if (body.result === "OK")
@@ -185,6 +191,7 @@ onmessage = function(event) {
 
     worker1.request({}); // workerID=1,requestID=1
 }
+
 function _multiline(fn) { // @arg Function:
                           // @ret String:
     return (fn + "").split("\n").slice(1, -1).join("\n");
