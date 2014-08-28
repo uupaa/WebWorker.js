@@ -1,5 +1,8 @@
 var ModuleTestWebWorker = (function(global) {
 
+var _BLOB = global["Blob"]|| global["webkitBlob"] || null;
+var _URL  = global["URL"] || global["webkitURL"] || null;
+
 var _inNode    = "process"        in global;
 var _inWorker  = "WorkerLocation" in global;
 var _inBrowser = "document"       in global;
@@ -14,25 +17,24 @@ var test = new Test("WebWorker", {
         both:       true,
     });
 
-if (_inBrowser) {
-    test.add([
-        testWebWorkerSetOrigin,
-        testWebWorkerImportScripts,
-        testWebWorkerManyWorkers,
+test.add([
+    testWebWorkerSetOrigin,
+    testWebWorkerImportScripts,
+    testWebWorkerManyWorkers,
 
-        testWebWorkerCanReuse,
+    testWebWorkerCanReuse,
 
-        testWebWorkerWithMethod,
-        testWebWorkerOneThreadCallThreeTimes,
-        testWebWorkerCancel,
+    testWebWorkerWithMethod,
+    testWebWorkerOneThreadCallThreeTimes,
+    testWebWorkerCancel,
 
-        testMessageOverWorkerThread,
+    testMessageOverWorkerThread,
 
-        testWebWorkerThrowOuter,
-        testWebWorkerThrowInner,
-        testWebWorkerThrowInnerWithMethod,
-    ]);
-}
+    testWebWorkerThrowOuter,
+    testWebWorkerThrowInner,
+    testWebWorkerThrowInnerWithMethod,
+
+]);
 
 if (!spec.isMobileDevice()) {
     test.add([
@@ -46,6 +48,10 @@ if (spec.BROWSER_NAME === "Chrome") {
         testWebWorkerThrowOuterWithTryCatch,
     ]);
 }
+
+test.add([
+    testWebWorkerDownloadBlobResource,
+]);
 
 
 
@@ -521,6 +527,48 @@ function testMessageOverWorkerThread(test, pass, miss) {
     });
 }
 
+
+function testWebWorkerDownloadBlobResource(test, pass, miss) {
+
+    var scripts = [
+            "../node_modules/uupaa.wmurl.js/lib/WMURL.js",
+            "../node_modules/uupaa.xhrproxy.js/node_modules/uupaa.eventlistener.js/lib/EventListener.js",
+            "../node_modules/uupaa.xhrproxy.js/node_modules/uupaa.datatype.js/lib/DataType.js",
+            "../node_modules/uupaa.xhrproxy.js/lib/XHRProxy.js",
+            "../node_modules/uupaa.task.js/lib/Task.js",
+        ];
+    var resources = [
+            "./1.png",
+            "./2.png",
+        ];
+
+    var worker = new WebWorker("./worker.download.blob.resource.js",
+                               function(err, body, param) {
+//debugger;
+        var obj = body; // { url: blobURL }
+
+
+        for (var url in obj) {
+            var blobURL = obj[url];
+            var img = document.createElement("img");
+
+            img.src = blobURL;
+
+            document.body.appendChild(img);
+        }
+        // chrome://blob-internals/
+
+        //_URL["revokeObjectURL"](blobURL);
+
+        if (err) {
+            test.done(miss());
+        } else {
+            test.done(pass());
+        }
+    }, { verbose: true, "import": scripts });
+
+    worker.request(resources);
+}
 
 })((this || 0).self || global);
 

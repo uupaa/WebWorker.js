@@ -1,6 +1,6 @@
 {
   "name":           "uupaa.webworker.js",
-  "version":        "0.13.0",
+  "version":        "0.13.1",
   "description":    "WebWorkers wrapper.",
   "url":            "https://github.com/uupaa/WebWorker.js",
   "keywords":       ["WebWorkers", "Worker", "Thread", "util", "uupaa", "WebModule", "Unstable"],
@@ -52,7 +52,8 @@
     "uupaa.minify.js":  "",
     "uupaa.wmurl.js":   "",
     "uupaa.message.js": "",
-    "uupaa.spec.js":    ""
+    "uupaa.spec.js":    "",
+    "uupaa.xhrproxy.js":""
   },
   "lib":            "./lib/",
   "main":           "./index.js",
