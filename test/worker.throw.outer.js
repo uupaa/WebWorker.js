@@ -1,4 +1,4 @@
 // worker.throw.outer.js
 
-throw new Error("o_O");
+throw new Error("worker.throw.outer.js");
 

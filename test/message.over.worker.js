@@ -1,18 +1,8 @@
-// message.over.worker.js
+importScripts("../lib/WorkerThread.js");
 
-importScripts("../lib/WorkerResponder.js");
+var worker = new WorkerThread();
 
-var worker = new WorkerResponder(defaultCallback);
-
-worker.on("inbox", handleInBoxCommand); // command = "inbox" に反応するコールバックを登録します
-
-function handleInBoxCommand(event, body) {
-    var result = body.message.join("!"); // "hello!worker"
-
-    worker.response({ "result": result }); // event.data.result = "hello!worker"
-}
-
-function defaultCallback(event, body) { // 宛先が不明な command はこのコールバックに渡されます
-    worker.response({ "result": "unknown command" });
-}
-
+worker.on("inbox", function(body,    // @arg Any
+                            param) { // @arg Object - { event, method, ticket, reply }
+    worker.response(body + " Worker!", param); // 第二引数に param をそのまま渡します
+});

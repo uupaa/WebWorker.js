@@ -1,7 +1,11 @@
 importScripts("../lib/WorkerThread.js");
 
 var worker = new WorkerThread(function(body, param) {
-//debugger;
-    throw new Error("worker.throw.inner.js");
+
+    new Task(1, function(err) {
+
+        worker.response({ "result": "OK" });
+
+    }).pass();
 });
 

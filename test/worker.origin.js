@@ -1,7 +1,6 @@
 importScripts("../lib/WorkerThread.js");
 
 var worker = new WorkerThread(function(body, param) {
-//debugger;
-    throw new Error("worker.throw.inner.js");
+    worker.response({ "self.origin": self.origin }); // "http://example.com/"
 });
 

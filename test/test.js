@@ -4,6 +4,7 @@ var _inNode    = "process"        in global;
 var _inWorker  = "WorkerLocation" in global;
 var _inBrowser = "document"       in global;
 
+var spec = new Spec();
 var test = new Test("WebWorker", {
         disable:    false,
         browser:    true,
@@ -15,22 +16,49 @@ var test = new Test("WebWorker", {
 
 if (_inBrowser) {
     test.add([
-        testWebWorker1,
-        testWebWorker2,
-        testWebWorkerThrowInner,
-        testWebWorkerThrowOuter,
-        testWebWorkerInline,
-        testWebWorkerCloseAfterCanReuse,
-        testWebWorkerHookCallback,
-        testWebWorkerCommand,
+        testWebWorkerSetOrigin,
+        testWebWorkerImportScripts,
+        testWebWorkerManyWorkers,
+
+        testWebWorkerCanReuse,
+
+        testWebWorkerWithMethod,
+        testWebWorkerOneThreadCallThreeTimes,
+        testWebWorkerCancel,
+
         testMessageOverWorkerThread,
+
+        testWebWorkerThrowOuter,
+        testWebWorkerThrowInner,
+        testWebWorkerThrowInnerWithMethod,
     ]);
 }
+
+if (!spec.isMobileDevice()) {
+    test.add([
+        testWebWorkerInlineWorker,
+        testWebWorkerInlineWorkerWithOriginAndImportScripts,
+    ]);
+}
+
+if (spec.BROWSER_NAME === "Chrome") {
+    test.add([
+        testWebWorkerThrowOuterWithTryCatch,
+    ]);
+}
+
+
 
 return test.run().clone();
 
 
-function testWebWorker1(test, pass, miss) {
+function _multiline(fn) { // @arg Function:
+                          // @ret String:
+    return (fn + "").split("\n").slice(1, -1).join("\n");
+}
+
+
+function testWebWorkerSetOrigin(test, pass, miss) {
 
     var task = new Task(1, function(err) {
             if (!err) {
@@ -40,29 +68,28 @@ function testWebWorker1(test, pass, miss) {
             }
         });
 
-    var origin = location.href.split("/").slice(0, -1).join("/") + "/";
+    //var origin = location.href.split("/").slice(0, -1).join("/") + "/";
+    var origin = "http://example.com/";
 
-    var worker1 = new WebWorker({ origin: origin,
-                                  source: "./worker.js",
-                                  verbose: true }, function(err, event, body) {
+    var worker = new WebWorker("./worker.origin.js", function(err, body, param) {
             if (err) {
                 ;
             } else {
-                if (body.result === "helloworker") {
+                if (body["self.origin"] === origin) {
 
                     task.pass();
                     return;
                 }
             }
             task.miss();
-        });
+        }, { origin: origin, verbose: true });
 
-    worker1.request({ param: ["hello", "worker"] }); // workerID=1,requestID=1
+    worker.request();
 }
 
-function testWebWorker2(test, pass, miss) {
+function testWebWorkerImportScripts(test, pass, miss) {
 
-    var task = new Task(4, function(err) {
+    var task = new Task(1, function(err) {
             if (!err) {
                 test.done(pass());
             } else {
@@ -70,67 +97,67 @@ function testWebWorker2(test, pass, miss) {
             }
         });
 
-    var script = [
+    var scripts = [
                 "../node_modules/uupaa.valid.js/lib/Valid.js",
                 "../node_modules/uupaa.task.js/lib/Task.js"
             ];
 
-    var worker1 = new WebWorker({ script: script, source: "./worker.js", verbose: true }, function(err, event, body) {
+    var worker = new WebWorker("./worker.import.js", function(err, body, param) {
             if (err) {
                 ;
             } else {
-                if (body.result === "helloworker" ||
-                    body.result === "foobar") {
+                if (body.result === "OK") {
 
                     task.pass();
                     return;
                 }
             }
             task.miss();
-        });
+        }, { "import": scripts, verbose: true });
 
-    var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true }, function(err, event, body) {
-            if (err) {
-                ;
-            } else {
-                if (body.result === "helloworker" ||
-                    body.result === "foobar") {
-
-                    task.pass();
-                    return;
-                }
-            }
-            task.miss();
-        });
-
-
-    worker1.request({ param: ["hello", "worker"] }); // workerID=1,requestID=1
-    worker1.request({ param: ["foo",   "bar"]    }); // workerID=1,requestID=2
-    worker2.request({ param: ["hello", "worker"] }); // workerID=2,requestID=1000
-    worker2.request({ param: ["foo",   "bar"]    }); // workerID=2,requestID=1001
+    worker.request();
 }
 
+function testWebWorkerManyWorkers(test, pass, miss) {
 
-function testWebWorkerThrowInner(test, pass, miss) {
+    var threads = 16;
 
-    var task = new Task(1, function(err) {
+    var task = new Task(threads, function(err) {
             if (!err) {
+                if (spec.isMobileDevice() ){
+                    alert( threads );
+                }
                 test.done(pass());
             } else {
                 test.done(miss());
             }
         });
 
-    var worker1 = new WebWorker({ source: "./worker.throw.inner.js", verbose: true }, function(err, event) {
-            if (err) {
+    var scripts = [
+                "../node_modules/uupaa.valid.js/lib/Valid.js",
+                "../node_modules/uupaa.task.js/lib/Task.js"
+            ];
+
+    var delay = 1000;
+
+    function callback(err, body, param) {
+        console.log(param.ticket, body.elapsed - delay)
+        if (!err) {
+            if (body.elapsed - delay <= 100) { // margin 0-100ms
+                console.log(param.ticket, "OK");
+
                 task.pass();
-            } else {
-                task.miss();
+                return;
             }
-        });
+        }
+        console.log(param.ticket, "NG");
+        task.miss();
+    }
+    var options = { "import": scripts, verbose: true };
 
-
-    worker1.request({}, null, null, "inbox");
+    for (var i = 0; i < threads; ++i) {
+        new WebWorker("./worker.many.js", callback, options).request({ delay: delay });
+    }
 }
 
 function testWebWorkerThrowOuter(test, pass, miss) {
@@ -141,22 +168,109 @@ function testWebWorkerThrowOuter(test, pass, miss) {
             } else {
                 test.done(miss());
             }
+            if (console.groupEnd) {
+                console.groupEnd();
+            }
         });
 
-    var worker1 = new WebWorker({ source: "./worker.throw.outer.js", verbose: true }, function(err, event) {
-            if (err) {
+    var worker = new WebWorker("./worker.throw.outer.js",
+                               function(err, body, param) {
+            if (err && /worker.throw.outer.js/.test(err.message)) {
                 task.pass();
             } else {
                 task.miss();
             }
+        }, { verbose: true });
+
+    worker.request();
+}
+
+function testWebWorkerThrowOuterWithTryCatch(test, pass, miss) {
+
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+            if (console.groupEnd) {
+                console.groupEnd();
+            }
         });
 
+    var worker = new WebWorker("./worker.throw.outer.with.try.catch.js",
+                               function(err, body, param) {
+/*
+            if (spec.BROWSER_NAME === "Safari") {
+                // MobileSafari は WorkerGlobalScope で例外が発生すると、
+                // try 〜 catch を無視して ErrorEvent が発生する
+                task.pass();
+            } else {
+                task.miss();
+            }
+ */
+            task.miss();
+        }, { verbose: true });
 
-    worker1.request({}); // workerID=1,requestID=1
+    worker.request();
+
+    setTimeout(function() {
+        task.pass();
+    }, 1000);
+}
+
+function testWebWorkerThrowInner(test, pass, miss) {
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+            if (console.groupEnd) {
+                console.groupEnd();
+            }
+        });
+
+    var worker = new WebWorker("./worker.throw.inner.js",
+                               function(err, body, param) {
+            if (err && /worker.throw.inner.js/.test(err.message)) {
+                task.pass();
+            } else {
+                task.miss();
+            }
+        }, {  verbose: true });
+
+    worker.request();
+}
+
+function testWebWorkerThrowInnerWithMethod(test, pass, miss) {
+
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+            if (console.groupEnd) {
+                console.groupEnd();
+            }
+        });
+
+    var worker = new WebWorker("./worker.throw.inner.with.method.js",
+                               function(err, body, param) {
+            if (err && /worker.throw.inner.with.method.js/.test(err.message)) {
+                task.pass();
+            } else {
+                task.miss();
+            }
+        }, {  verbose: true });
+
+    worker.request(null, { method: "inbox" });
 }
 
 
-function testWebWorkerInline(test, pass, miss) {
+
+function testWebWorkerInlineWorker(test, pass, miss) {
 
     var task = new Task(1, function(err) {
             if (!err) {
@@ -169,36 +283,78 @@ function testWebWorkerInline(test, pass, miss) {
 var inlineWorkerSource = _multiline(function() {/*
 
 onmessage = function(event) {
+    //debugger;
+    // event.data = { init, origin, import, ticket, method, cancel, body }
     event.data.result = "OK";
     self.postMessage(event.data);
 };
 
 */});
 
-    var worker1 = new WebWorker({ inline: true,
-                                  source: inlineWorkerSource,
-                                  verbose: true },
-                                function(err, event, body) {
+    var worker = new WebWorker(inlineWorkerSource,
+                               function(err, body, param) {
             if (!err) {
-              //if (body.result === "OK")
                 if (event.data.result === "OK") {
                     task.pass();
                     return;
                 }
             }
             task.miss();
+        }, { inline: true, verbose: true });
+
+    worker.request();
+}
+
+function testWebWorkerInlineWorkerWithOriginAndImportScripts(test, pass, miss) {
+
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
         });
 
-    worker1.request({}); // workerID=1,requestID=1
+var origin = "http://localhost:8585/";
+
+var inlineWorkerSource = _multiline(function() {/*
+
+//debugger;
+importScripts("__ORIGIN__lib/WorkerThread.js");
+
+var worker = new WorkerThread(function(event, method, body) {
+        //debugger;
+        worker.response({ origin: self.origin });
+    });
+
+*/}).replace("__ORIGIN__", origin);
+
+    var scripts = [
+            "__ORIGIN__node_modules/uupaa.valid.js/lib/Valid.js".replace("__ORIGIN__", origin),
+            "__ORIGIN__node_modules/uupaa.task.js/lib/Task.js".replace("__ORIGIN__", origin),
+        ];
+
+    var worker = new WebWorker(inlineWorkerSource,
+                               function(err, body, param) {
+            if (!err) {
+                if (body.origin === origin) {
+                    task.pass();
+                    return;
+                }
+            }
+            task.miss();
+        }, { origin: origin, inline: true, verbose: true, "import": scripts });
+
+    worker.request();
 }
 
-function _multiline(fn) { // @arg Function:
-                          // @ret String:
-    return (fn + "").split("\n").slice(1, -1).join("\n");
-}
 
 
-function testWebWorkerCloseAfterCanReuse(test, pass, miss) {
+
+
+
+
+function testWebWorkerCanReuse(test, pass, miss) {
 
     var task = new Task(2, function(err) {
             if (!err) {
@@ -208,31 +364,30 @@ function testWebWorkerCloseAfterCanReuse(test, pass, miss) {
             }
         });
 
-    var worker1 = new WebWorker({ source: "./worker.js", verbose: true }, function(err, event) {
-            if (!err) {
-                task.pass();
-
-                worker1.close(); // -> closed
-
-                try {
-                    // reuse
-                    worker1.request({ param: ["hello", "worker"] }); // workerID=1,requestID=2
-                    task.pass();
-                    worker1.close();
-                } catch (o_o) {
-                    task.miss();
-                }
-
-            } else {
+    var worker = new WebWorker("./worker.can.reuse.js",
+                               function(err, body, param) {
+            if (err) {
                 task.miss();
+                return;
             }
-        });
+            switch (body.count) {
+            case 1:
+                task.pass();
+                worker.close();
+                worker.request({ count: 2 }); // reuse
+                break;
+            case 2:
+                task.pass();
+                worker.close();
+            }
+        }, { verbose: true });
 
-    worker1.request({ param: ["hello", "worker"] }); // workerID=1,requestID=1
-
+    worker.request({ count: 1 });
 }
 
-function testWebWorkerHookCallback(test, pass, miss) {
+
+
+function testWebWorkerWithMethod(test, pass, miss) {
 
     var task = new Task(3, function(err) {
             if (!err) {
@@ -242,102 +397,123 @@ function testWebWorkerHookCallback(test, pass, miss) {
             }
         });
 
-    var script = [
-                "../node_modules/uupaa.valid.js/lib/Valid.js",
-                "../node_modules/uupaa.task.js/lib/Task.js"
-            ];
 
-    var worker1 = new WebWorker({ script: script, source: "./worker.js", verbose: true });
-    var worker2 = new WebWorker({ script: script, source: "./worker.js", count: 1000, verbose: true });
-
-    // workerID=1,requestID=1
-    worker1.request({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event, body) {
-            if (err) {
-                ;
-            } else {
-                if (body.result === "helloworker") {
-                    task.pass();
-                    return;
-                }
-            }
-            task.miss();
-    });
-    // workerID=1,requestID=2
-    worker1.request({ param: ["foo", "bar"], sleep: 1000 }, null, function(err, event, body) {
-            if (err) {
-                ;
-            } else {
-                if (body.result === "foobar") {
-                    task.pass();
-                    return;
-                }
-            }
-            task.miss();
-    });
-
-
-    // workerID=2,requestID=1000
-    worker2.request({ param: ["hello", "worker"], sleep: 1000 }, null, function(err, event, body) {
-            if (err) {
-                ;
-            } else {
-                if (body.result === "helloworker") {
-                    task.pass();
-                    return;
-                }
-            }
-            task.miss();
-    });
-}
-
-
-
-
-
-function testWebWorkerCommand(test, pass, miss) {
-
-    var worker = new WebWorker({ source: "./worker.command.routing.js", verbose: true });
-    var data = { message: ["hello", "worker"] };
-
-    worker.request(data, null, function(err, event, body) {
-        if (err || body.result !== "hello!worker") {
-            test.done(miss());
-        } else {
-            test.done(pass());
+    function callback(err, body, param) {
+        switch (param.method) {
+        case "methodA": task.pass(); break;
+        case "methodB": task.pass(); break;
+        case "methodC": task.pass(); break;
+        default: task.miss();
         }
-    }, "concat");
-}
-/*
-// worker.command.routing.js
+    }
 
-importScripts("../lib/WorkerResponder.js");
+    var worker1 = new WebWorker("./worker.with.method.js", callback, { verbose: true });
+    var worker2 = new WebWorker("./worker.with.method.js", callback, { verbose: true });
 
-var worker = new WorkerResponder(defaultCallback);
-
-worker.on("concat", handleConcatCommand); // command = "concat" に反応するコールバックを登録します
-
-function handleConcatCommand(event, body) {
-    var result = body.message.join("!"); // "hello!worker"
-
-    worker.response({ "result": result }); // body.result = "hello!worker"
+    worker1.on("methodA", callback);
+    worker1.on("methodB", callback);
+    worker2.on("methodC", callback);
+    worker1.request(null, { method: "method1" });
+    worker1.request(null, { method: "method2" });
+    worker2.request(null, { method: "method3" });
 }
 
-function defaultCallback(event, body) { // 宛先が不明な command はこのコールバックに渡されます
-    worker.response({ "result": "unknown command" });
+function testWebWorkerOneThreadCallThreeTimes(test, pass, miss) {
+
+    var task = new Task(3, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+        });
+
+
+    function callback(err, body, param) {
+        switch (param.method) {
+        case "methodA":
+            if (body === 1) {
+                task.pass();
+            } else {
+                task.miss();
+            }
+            break;
+        case "methodB":
+            if (body === 3) {
+                task.pass();
+            } else {
+                task.miss();
+            }
+            break;
+        case "methodC":
+            if (body === 7) {
+                task.pass();
+            } else {
+                task.miss();
+            }
+            break;
+        default:
+            task.miss();
+        }
+    }
+
+    var worker = new WebWorker("./worker.call.three.times.js", callback, { verbose: true });
+
+    worker.on("methodA", callback);
+    worker.on("methodB", callback);
+    worker.on("methodC", callback);
+    worker.request(1, { method: "method1" });
+    worker.request(2, { method: "method2" });
+    worker.request(4, { method: "method3" });
 }
 
- */
+
+function testWebWorkerCancel(test, pass, miss) {
+
+    var task = new Task(1, function(err) {
+            if (!err) {
+                test.done(pass());
+            } else {
+                test.done(miss());
+            }
+        });
 
 
+    function callback(err, body, param) {
+        if (err) {
+            task.miss();
+        } else {
+            console.log(body);
+            //alert(body);
+            task.pass();
+        }
+    }
+
+    var worker = new WebWorker("./worker.cancel.js", callback, { verbose: true });
+
+    var ticket = worker.request(0, { method: "loopStart" });
+
+    setTimeout(function() {
+        worker.cancel(ticket);
+    }, 1000);
+}
 
 
 function testMessageOverWorkerThread(test, pass, miss) {
 
-    var worker = new WebWorker({ source: "message.over.worker.js", verbose: true });
-    var msg = new Message({ worker: worker });
+    function Yo() {
+    }
+    Yo.prototype.inbox = function(task, body, id) {
+        task.set("Yo", body + " Yo!").pass();
+    };
 
-    msg.post({ message: ["hello", "worker"] }, function(err, buffer) {
-        if (buffer.worker === "hello!worker") {
+    var worker = new WebWorker("message.over.worker.js", null, { verbose: true });
+    var msg = new Message({ Yo: new Yo(), Worker: worker });
+
+    msg.post("Hello", function(err, buffer) {
+        if (buffer.Yo     === "Hello Yo!" &&
+            buffer.Worker === "Hello Worker!") {
+
             test.done(pass());
         } else {
             test.done(miss());
