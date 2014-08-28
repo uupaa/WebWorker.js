@@ -20,9 +20,9 @@ WebWorker wrapper.
 <script src="lib/WebWorker.js"></script>
 <script>
 
-new WebWorker({ source: "./worker.js" }, function(err, event) {
-    console.log(event.data.result);
-}).request({});
+new WebWorker("./worker.js", function(err, body, param) {
+    console.log(body);
+}).request();
 
 </script>
 ```
@@ -30,11 +30,9 @@ new WebWorker({ source: "./worker.js" }, function(err, event) {
 ### WebWorkers
 
 ```js
-importScripts("lib/WorkerResponder.js");
+importScripts("../lib/WorkerThread.js");
 
-var worker = new WorkerResponder(function(event, body) {
-    var result = body.param[0] + body.param[1];
-
-    worker.response({ "result": result });
+var worker = new WorkerThread(function(body, param) {
+    worker.response();
 });
 ```
