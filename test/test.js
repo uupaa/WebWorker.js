@@ -17,6 +17,16 @@ var test = new Test("WebWorker", {
         both:       true,
     });
 
+if (!global["Worker"]) {
+    alert("WebWorkers not impl.");
+}
+if (!_BLOB) {
+    alert("Blob not impl.");
+}
+if (!_URL) {
+    alert("Blob URL not impl.");
+}
+
 test.add([
     testWebWorkerSetOrigin,
     testWebWorkerImportScripts,
@@ -538,9 +548,19 @@ function testWebWorkerDownloadBlobResource(test, pass, miss) {
             "../node_modules/uupaa.task.js/lib/Task.js",
         ];
     var resources = [
-            "./1.png",
-            "./2.png",
+            // http://www.ito51.net/list/index.html (c) 伊藤製作所
+            "./img/1.png",
+            "./img/2.png",
+            "./img/3.png",
+            "./img/4.png",
+            "./img/5.png",
+            "./img/6.png",
+            "./img/7.png",
+            "./img/8.png",
         ];
+
+    document.body.innerHTML += '<a href="chrome://blob-internals/">Blob URLs</a><br />';
+    document.body.innerHTML += '<a href="http://www.ito51.net/list/index.html">戦うTシャツ屋 伊藤製作所</a><br />';
 
     var worker = new WebWorker("./worker.download.blob.resource.js",
                                function(err, body, param) {
