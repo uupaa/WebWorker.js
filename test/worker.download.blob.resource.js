@@ -29,7 +29,7 @@ debugger;
         xhr.open("GET", url);
         xhr.responseType = "blob";
         xhr.on("load", function(event) {
-            //var blob = new _BLOB([event.response], { "type": "image/png" });
+            //var blob = new _BLOB([xhr.response], { "type": "image/png" });
             //var blobURL = _URL["createObjectURL"](blob); // [1] blob://...
             var blob = xhr.response;
             var blobURL = _URL["createObjectURL"](blob); // [1] blob://...

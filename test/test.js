@@ -91,6 +91,7 @@ function testWebWorkerSetOrigin(test, pass, miss) {
             if (err) {
                 ;
             } else {
+//debugger;
                 if (body["self.origin"] === origin) {
 
                     task.pass();
@@ -331,12 +332,11 @@ function testWebWorkerInlineWorkerWithOriginAndImportScripts(test, pass, miss) {
             }
         });
 
-var origin = "http://localhost:8585/";
-
+var origin = location.href.split("/").slice(0, -2).join("/");
 var inlineWorkerSource = _multiline(function() {/*
 
 //debugger;
-importScripts("__ORIGIN__lib/WorkerThread.js");
+importScripts("__ORIGIN__/lib/WorkerThread.js");
 
 var worker = new WorkerThread(function(event, method, body) {
         //debugger;
@@ -346,8 +346,8 @@ var worker = new WorkerThread(function(event, method, body) {
 */}).replace("__ORIGIN__", origin);
 
     var scripts = [
-            "__ORIGIN__node_modules/uupaa.valid.js/lib/Valid.js".replace("__ORIGIN__", origin),
-            "__ORIGIN__node_modules/uupaa.task.js/lib/Task.js".replace("__ORIGIN__", origin),
+            "__ORIGIN__/node_modules/uupaa.valid.js/lib/Valid.js".replace("__ORIGIN__", origin),
+            "__ORIGIN__/node_modules/uupaa.task.js/lib/Task.js".replace("__ORIGIN__", origin),
         ];
 
     var worker = new WebWorker(inlineWorkerSource,

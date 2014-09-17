@@ -2,7 +2,7 @@
 
 [![npm](https://nodei.co/npm/uupaa.webworker.js.png?downloads=true&stars=true)](https://nodei.co/npm/uupaa.webworker.js/)
 
-WebWorker wrapper.
+WebWorkers wrapper.
 
 ## Document
 
